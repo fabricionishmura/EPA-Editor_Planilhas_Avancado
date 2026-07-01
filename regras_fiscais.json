@@ -1,0 +1,1043 @@
+{
+  "versao": "0.1.0",
+  "objetivo": "Regras iniciais para sugerir CFOP, NCM, categoria, confianca e justificativa a partir da descricao do produto, codigo de barras e NCM antigo.",
+  "fontes": {
+    "produtos": [
+      "PRODUTO (1).xlsx",
+      "PRODUTO LINDOMAR.xlsx"
+    ],
+    "tabela_ncm": "Tabela_NCM_Vigente_20260701.json",
+    "tabela_ncm_descricao_concatenada": "Tabela_NCM_Desc_Concatenada_Vigente_20260701.xlsx",
+    "vigencia_ncm": "Vigente em 01/07/2026"
+  },
+  "colunas_saida": [
+    "CFOP_SUGERIDO",
+    "NCM_SUGERIDO",
+    "CATEGORIA",
+    "CONFIANCA",
+    "JUSTIFICATIVA"
+  ],
+  "cfop": {
+    "tributado_geral": "5102",
+    "bebidas_em_geral": "5405"
+  },
+  "normalizacao": {
+    "maiusculas": true,
+    "remover_acentos": true,
+    "remover_html": true,
+    "pontuacao_como_espaco": true,
+    "normalizar_espacos": true,
+    "observacao": "A busca deve trabalhar por tokens e frases normalizadas. Evitar correspondencia por substring solta: COCA nao pode casar com PACOCA."
+  },
+  "confianca": {
+    "alta": {
+      "min_score": 90,
+      "acao": "Pode preencher sugestao automaticamente na planilha de auditoria."
+    },
+    "media": {
+      "min_score": 65,
+      "acao": "Sugerir, mas marcar justificativa para revisao fiscal."
+    },
+    "baixa": {
+      "min_score": 1,
+      "acao": "Nao alterar NCM automaticamente; manter antigo quando valido ou deixar revisao."
+    },
+    "sem_classificacao": {
+      "min_score": 0,
+      "acao": "Manter CFOP 5102, NCM antigo se vigente, e marcar revisao."
+    }
+  },
+  "prioridades_gerais": [
+    "1. Validar se NCM antigo existe na tabela vigente de NCM final com 8 digitos.",
+    "2. Aplicar bloqueios globais e palavras proibidas da categoria.",
+    "3. Aplicar regras especificas de bebida antes de regras genericas.",
+    "4. Quando NCM antigo e descricao concordarem, elevar confianca.",
+    "5. Quando NCM antigo e descricao conflitarem, manter sugestao conservadora e marcar justificativa.",
+    "6. Se houver empate entre categorias, escolher a de maior prioridade; se o empate persistir, marcar confianca media ou baixa."
+  ],
+  "bloqueios_globais_para_bebida": [
+    "AGUA SANITARIA",
+    "ALCOOL GEL",
+    "ALCOOL 70",
+    "ALCOOL 92",
+    "ALCOOL 96",
+    "ALCOOL ANHANGUERA",
+    "ALCOOL SOL",
+    "ALCOOL J FERES",
+    "VINAGRE",
+    "LAVA LOUCAS",
+    "LIMPADOR",
+    "DESINFETANTE",
+    "MULTIUSO",
+    "SABONETE",
+    "SHAMPOO",
+    "CONDICIONADOR",
+    "CREME DENTAL",
+    "DESODORANTE",
+    "ESMALTE",
+    "TINTA",
+    "CORANTE XADREZ",
+    "GELO REUTILIZAVEL",
+    "FORMA DE GELO",
+    "SACO DE GELO"
+  ],
+  "ncm_capitulo_22": {
+    "tratar_como_bebida_se_descricao_confirmar": [
+      "22011000",
+      "22019000",
+      "22021000",
+      "22029100",
+      "22029900",
+      "22030000",
+      "22041010",
+      "22042100",
+      "22042910",
+      "22059000",
+      "22060090",
+      "22072020",
+      "22082000",
+      "22083020",
+      "22084000",
+      "22085000",
+      "22086000",
+      "22087000",
+      "22089000"
+    ],
+    "nao_tratar_como_bebida": [
+      "22071090",
+      "22072019",
+      "22090000"
+    ],
+    "observacao": "Nem todo NCM 22 deve receber CFOP 5405. Vinagre e alcool de limpeza devem permanecer como tributado geral ou revisao."
+  },
+  "regras": [
+    {
+      "id": "bebida_agua_mineral",
+      "categoria": "agua mineral",
+      "prioridade": 1000,
+      "cfop": "5405",
+      "ncm_preferencial": "22011000",
+      "ncm_aceitos": [
+        "22011000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "AGUA MINERAL",
+        "AGUA COM GAS",
+        "AGUA SEM GAS",
+        "AGUA C GAS",
+        "AGUA S GAS"
+      ],
+      "palavras_fortes": [
+        "CRISTALINA",
+        "LA PRIORI",
+        "PETROPOLITANA",
+        "INDAIA",
+        "PURISSIMA",
+        "NINA"
+      ],
+      "palavras_proibidas": [
+        "AGUA SANITARIA",
+        "AGUA OXIGENADA",
+        "AGUA DE COCO",
+        "GELO",
+        "LIMPADOR",
+        "DESINFETANTE"
+      ],
+      "score_base": 75,
+      "bonus_ncm_antigo_aceito": 25,
+      "justificativa": "Descricao indica agua mineral; NCM antigo compativel reforca 22011000."
+    },
+    {
+      "id": "bebida_refrigerante",
+      "categoria": "refrigerante",
+      "prioridade": 990,
+      "cfop": "5405",
+      "ncm_preferencial": "22021000",
+      "ncm_aceitos": [
+        "22021000",
+        "22029100"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "REFRI",
+        "REFRIGERANTE",
+        "H2 OH",
+        "H2OH",
+        "AGUA TONICA"
+      ],
+      "palavras_fortes": [
+        "COCA COLA",
+        "COCA",
+        "FANTA",
+        "SPRITE",
+        "GUARANA",
+        "SUKITA",
+        "PEPSI",
+        "SCHWEPPES",
+        "ANTARCTICA",
+        "JESUS",
+        "LIMONETO"
+      ],
+      "palavras_proibidas": [
+        "PACOCA",
+        "CACHA",
+        "CACHAÇA",
+        "SUCO EM PO",
+        "SUCO TANG",
+        "GUARANA EM PO",
+        "BALINHA",
+        "BATOM",
+        "ESMALTE"
+      ],
+      "score_base": 78,
+      "bonus_ncm_antigo_aceito": 22,
+      "justificativa": "Descricao indica refrigerante ou bebida gaseificada."
+    },
+    {
+      "id": "bebida_energetico_isotonico",
+      "categoria": "energetico ou isotonico",
+      "prioridade": 980,
+      "cfop": "5405",
+      "ncm_preferencial": "22029900",
+      "ncm_aceitos": [
+        "22029900",
+        "22021000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "ENERGETICO",
+        "ENERGITICO",
+        "ISOTONICO",
+        "GATORADE",
+        "POWERADE",
+        "RED BULL",
+        "MONSTER"
+      ],
+      "palavras_fortes": [
+        "TNT",
+        "EXTRA POWER",
+        "BALY",
+        "VIBE",
+        "FUSION"
+      ],
+      "palavras_proibidas": [
+        "GEL",
+        "SABONETE",
+        "SHAMPOO"
+      ],
+      "score_base": 82,
+      "bonus_ncm_antigo_aceito": 18,
+      "justificativa": "Descricao indica energetico ou isotonico pronto para consumo."
+    },
+    {
+      "id": "bebida_lactea_achocolatado_pronto",
+      "categoria": "bebida lactea ou achocolatado pronto",
+      "prioridade": 970,
+      "cfop": "5405",
+      "ncm_preferencial": "22029900",
+      "ncm_aceitos": [
+        "22029900"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "BEBIDA LACTEA",
+        "ACHOCOLATADO"
+      ],
+      "palavras_fortes": [
+        "PIRAKIDS",
+        "TODDYNHO",
+        "NESCAU PRONTO",
+        "CHOCOLATE 1L"
+      ],
+      "palavras_proibidas": [
+        "EM PO",
+        "PO 200",
+        "PO 370",
+        "PO 750",
+        "MISTURA",
+        "BISCOITO",
+        "BOLO"
+      ],
+      "score_base": 76,
+      "bonus_ncm_antigo_aceito": 24,
+      "justificativa": "Descricao indica bebida lactea/achocolatado liquido pronto."
+    },
+    {
+      "id": "bebida_suco_pronto_nectar",
+      "categoria": "suco pronto ou nectar",
+      "prioridade": 960,
+      "cfop": "5405",
+      "ncm_preferencial": "22029900",
+      "ncm_aceitos": [
+        "22029900",
+        "20099000",
+        "20098919",
+        "20098990",
+        "20096100",
+        "20091200",
+        "20096900"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "NECTAR",
+        "SUCO PRONTO",
+        "SUCO INTEGRAL",
+        "DEL VALLE",
+        "TAMPICO",
+        "MAGUARY",
+        "DAFRUTA"
+      ],
+      "palavras_fortes": [
+        "UVA",
+        "LARANJA",
+        "MARACUJA",
+        "CAJU",
+        "GOIABA",
+        "MANGA"
+      ],
+      "palavras_proibidas": [
+        "SUCO EM PO",
+        "TANG",
+        "PROMIX",
+        "REFRESCO EM PO",
+        "PO 18G",
+        "PO 80G",
+        "GELATINA",
+        "BALAS",
+        "BISCOITO"
+      ],
+      "score_base": 72,
+      "bonus_ncm_antigo_aceito": 18,
+      "justificativa": "Descricao indica suco/nectar pronto. Sucos em po sao bloqueados."
+    },
+    {
+      "id": "preparado_suco_em_po",
+      "categoria": "suco em po ou preparado para refresco",
+      "prioridade": 955,
+      "cfop": "5102",
+      "ncm_preferencial": "21069010",
+      "ncm_aceitos": [
+        "21069010",
+        "21069090"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "SUCO TANG",
+        "SUCO PROMIX",
+        "REFRESCO EM PO",
+        "PO PARA REFRESCO"
+      ],
+      "palavras_fortes": [
+        "18G",
+        "80G",
+        "MARACUJA",
+        "UVA",
+        "LARANJA",
+        "LIMAO"
+      ],
+      "palavras_proibidas": [
+        "PRONTO",
+        "NECTAR",
+        "1L",
+        "200ML",
+        "300ML",
+        "500ML"
+      ],
+      "score_base": 85,
+      "bonus_ncm_antigo_aceito": 15,
+      "justificativa": "Preparado em po para refresco nao entra na regra de bebidas prontas."
+    },
+    {
+      "id": "bebida_cerveja",
+      "categoria": "cerveja",
+      "prioridade": 950,
+      "cfop": "5405",
+      "ncm_preferencial": "22030000",
+      "ncm_aceitos": [
+        "22030000",
+        "22029100"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "CERVEJA",
+        "CERV"
+      ],
+      "palavras_fortes": [
+        "BRAHMA",
+        "SKOL",
+        "HEINEKEN",
+        "AMSTEL",
+        "ITAIPAVA",
+        "ANTARCTICA",
+        "BUDWEISER",
+        "IMPERIO",
+        "PETRA",
+        "DEVASSA",
+        "ORIGINAL",
+        "PURO MALTE",
+        "PILSEN",
+        "CHOPP"
+      ],
+      "palavras_proibidas": [
+        "P CERVEJA",
+        "PARA CERVEJA",
+        "COPO",
+        "CANUDO",
+        "GELO BONABOCA P CERVEJA",
+        "ABRIDOR",
+        "CAMISETA",
+        "SALGADINHO",
+        "BATATA"
+      ],
+      "score_base": 84,
+      "bonus_ncm_antigo_aceito": 16,
+      "justificativa": "Descricao indica cerveja. Palavra ORIGINAL so deve contar quando houver indicio de cerveja."
+    },
+    {
+      "id": "bebida_vinho",
+      "categoria": "vinho",
+      "prioridade": 940,
+      "cfop": "5405",
+      "ncm_preferencial": "22042100",
+      "ncm_aceitos": [
+        "22042100",
+        "22042910",
+        "22059000",
+        "22060090",
+        "22041010"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "VINHO",
+        "MOSCATEL",
+        "CHAMPANHA",
+        "CHAMPANHE",
+        "SIDRA"
+      ],
+      "palavras_fortes": [
+        "TINTO",
+        "BRANCO",
+        "SUAVE",
+        "SECO",
+        "PERGOLA",
+        "MORGADO",
+        "MIORANZA",
+        "CANTINA",
+        "CERESER",
+        "CHUVA DE PRATA"
+      ],
+      "palavras_proibidas": [
+        "VINAGRE",
+        "SABOR UVA",
+        "BISCOITO",
+        "BALAS"
+      ],
+      "score_base": 83,
+      "bonus_ncm_antigo_aceito": 17,
+      "justificativa": "Descricao indica vinho, espumante, sidra ou composto alcoolico similar."
+    },
+    {
+      "id": "bebida_cachaca_aguardente",
+      "categoria": "cachaca ou aguardente",
+      "prioridade": 930,
+      "cfop": "5405",
+      "ncm_preferencial": "22084000",
+      "ncm_aceitos": [
+        "22084000",
+        "22089000",
+        "22072020"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "CACHACA",
+        "CACHAÇA",
+        "AGUARDENTE",
+        "AGUARDADENTE",
+        "CANINHA",
+        "DOSE CACHACA"
+      ],
+      "palavras_fortes": [
+        "YPICA",
+        "YPIOCA",
+        "VELHO BARREIRO",
+        "PIRASSUNUNGA",
+        "51",
+        "JAMEL",
+        "SELETA",
+        "CABARE",
+        "SALINAS"
+      ],
+      "palavras_proibidas": [
+        "PACOCA",
+        "BALAS",
+        "ESSENCIA",
+        "SABONETE"
+      ],
+      "score_base": 84,
+      "bonus_ncm_antigo_aceito": 16,
+      "justificativa": "Descricao indica cachaca/aguardente."
+    },
+    {
+      "id": "bebida_destilados_diversos",
+      "categoria": "destilado ou licor",
+      "prioridade": 920,
+      "cfop": "5405",
+      "ncm_preferencial": "22089000",
+      "ncm_aceitos": [
+        "22082000",
+        "22083020",
+        "22085000",
+        "22086000",
+        "22087000",
+        "22089000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "CONHAQUE",
+        "RUM",
+        "VODKA",
+        "WHISKY",
+        "WHISKR",
+        "GIN",
+        "LICOR",
+        "AMARULA",
+        "TEQUILA",
+        "CAMPARI"
+      ],
+      "palavras_fortes": [
+        "KRISKOF",
+        "ORLOFF",
+        "RUSTOFF",
+        "RED LABEL",
+        "WHITE HORSE",
+        "OLD PARR",
+        "CHIVAS",
+        "JACK DANIELS",
+        "TANQUERAY",
+        "BEEFEATER",
+        "ROCKS",
+        "DOMUS",
+        "DULLON",
+        "PRESIDENTE",
+        "MONTILLA"
+      ],
+      "palavras_proibidas": [
+        "ESSENCIA",
+        "AROMATIZANTE",
+        "SABONETE",
+        "ESMALTE"
+      ],
+      "score_base": 82,
+      "bonus_ncm_antigo_aceito": 18,
+      "justificativa": "Descricao indica destilado, conhaque, vodka, whisky, gin ou licor."
+    },
+    {
+      "id": "bebida_coquetel_ice_catuaba",
+      "categoria": "coquetel alcoolico ou fermentado composto",
+      "prioridade": 910,
+      "cfop": "5405",
+      "ncm_preferencial": "22060090",
+      "ncm_aceitos": [
+        "22060090",
+        "22089000",
+        "22072020",
+        "22029100"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "COQUETEL",
+        "CATUABA",
+        "JURUBEBA",
+        "RAIZES AMARGAS",
+        "ICE"
+      ],
+      "palavras_fortes": [
+        "CABARE",
+        "PARATUDO",
+        "CANELINHA",
+        "51 ICE"
+      ],
+      "palavras_proibidas": [
+        "GELO",
+        "PICOLE",
+        "SORVETE",
+        "REFRESCO EM PO"
+      ],
+      "score_base": 78,
+      "bonus_ncm_antigo_aceito": 17,
+      "justificativa": "Descricao indica coquetel, catuaba, ice ou bebida alcoolica composta."
+    },
+    {
+      "id": "vinagre",
+      "categoria": "vinagre",
+      "prioridade": 900,
+      "cfop": "5102",
+      "ncm_preferencial": "22090000",
+      "ncm_aceitos": [
+        "22090000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "VINAGRE"
+      ],
+      "palavras_fortes": [
+        "CASTELO",
+        "TOSCANO",
+        "ALCOOL",
+        "MACA",
+        "LIMAO",
+        "VINHO TINTO"
+      ],
+      "palavras_proibidas": [],
+      "score_base": 90,
+      "bonus_ncm_antigo_aceito": 10,
+      "justificativa": "Vinagre esta no capitulo 22, mas nao deve seguir a regra de CFOP de bebidas."
+    },
+    {
+      "id": "alcool_limpeza",
+      "categoria": "alcool de limpeza",
+      "prioridade": 895,
+      "cfop": "5102",
+      "ncm_preferencial": "22071090",
+      "ncm_aceitos": [
+        "22071090",
+        "22072019"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "ALCOOL"
+      ],
+      "palavras_fortes": [
+        "70",
+        "92",
+        "96",
+        "ANHANGUERA",
+        "SOL",
+        "J FERES",
+        "GEL"
+      ],
+      "palavras_proibidas": [
+        "CACHACA",
+        "CACHAÇA",
+        "VODKA",
+        "WHISKY",
+        "GIN",
+        "CERVEJA",
+        "VINHO"
+      ],
+      "score_base": 84,
+      "bonus_ncm_antigo_aceito": 16,
+      "justificativa": "Alcool para limpeza/uso geral nao deve receber CFOP de bebidas."
+    },
+    {
+      "id": "gelo",
+      "categoria": "gelo",
+      "prioridade": 890,
+      "cfop": "5102",
+      "ncm_preferencial": "22019000",
+      "ncm_aceitos": [
+        "22019000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "GELO"
+      ],
+      "palavras_fortes": [
+        "BARRA",
+        "CUBO",
+        "MANDA GELO",
+        "BONABOCA"
+      ],
+      "palavras_proibidas": [
+        "ICE",
+        "51 ICE",
+        "CERVEJA"
+      ],
+      "score_base": 70,
+      "bonus_ncm_antigo_aceito": 20,
+      "justificativa": "Gelo esta no capitulo 22, mas nao e bebida para a regra de CFOP 5405."
+    },
+    {
+      "id": "arroz",
+      "categoria": "arroz",
+      "prioridade": 700,
+      "cfop": "5102",
+      "ncm_preferencial": "10063021",
+      "ncm_aceitos": [
+        "10063011",
+        "10063021",
+        "10062010",
+        "10061091"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "ARROZ"
+      ],
+      "palavras_fortes": [
+        "TIPO 1",
+        "5 KG",
+        "CRISTAL",
+        "TIO URBANO"
+      ],
+      "palavras_proibidas": [
+        "TEMPERO",
+        "MUCILON"
+      ],
+      "score_base": 70,
+      "bonus_ncm_antigo_aceito": 20,
+      "justificativa": "Descricao indica arroz; temperos e alimentos infantis com arroz sao bloqueados."
+    },
+    {
+      "id": "acucar",
+      "categoria": "acucar",
+      "prioridade": 690,
+      "cfop": "5102",
+      "ncm_preferencial": "17019900",
+      "ncm_aceitos": [
+        "17019900",
+        "17011300",
+        "17011200"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "ACUCAR",
+        "AÇUCAR"
+      ],
+      "palavras_fortes": [
+        "CRISTAL",
+        "REFINADO",
+        "2KG",
+        "5 KG"
+      ],
+      "palavras_proibidas": [
+        "ALGODAO DOCE",
+        "BALA",
+        "BISCOITO"
+      ],
+      "score_base": 72,
+      "bonus_ncm_antigo_aceito": 18,
+      "justificativa": "Descricao indica acucar."
+    },
+    {
+      "id": "oleo_azeite_gorduras",
+      "categoria": "oleo, azeite ou gordura alimenticia",
+      "prioridade": 680,
+      "cfop": "5102",
+      "ncm_preferencial": "15079019",
+      "ncm_aceitos": [
+        "15071000",
+        "15079011",
+        "15079019",
+        "15092000",
+        "15093000",
+        "15094000",
+        "15099010",
+        "15099090",
+        "15171000",
+        "15179090"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "OLEO DE SOJA",
+        "OLEO SOJA",
+        "AZEITE",
+        "MARGARINA",
+        "GORDURA"
+      ],
+      "palavras_fortes": [
+        "LIZA",
+        "COMIGO",
+        "ANDORINHA",
+        "OLIVA",
+        "900ML",
+        "500ML"
+      ],
+      "palavras_proibidas": [
+        "OLEO CAPILAR",
+        "OLEO CORPORAL",
+        "SARDINHA COM OLEO"
+      ],
+      "score_base": 68,
+      "bonus_ncm_antigo_aceito": 22,
+      "justificativa": "Descricao indica oleo/azeite/gordura alimenticia."
+    },
+    {
+      "id": "macarrao_massas",
+      "categoria": "macarrao ou massa alimenticia",
+      "prioridade": 670,
+      "cfop": "5102",
+      "ncm_preferencial": "19021900",
+      "ncm_aceitos": [
+        "19021100",
+        "19021900",
+        "19023000",
+        "19024000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "MACARRAO",
+        "MACARRÃO",
+        "ESPAGUETE",
+        "PARAFUSO",
+        "TALHARIM"
+      ],
+      "palavras_fortes": [
+        "LIANE",
+        "CRISTAL",
+        "PAULISTA",
+        "500G",
+        "1KG"
+      ],
+      "palavras_proibidas": [
+        "MASSA CORRIDA",
+        "MASSA DE MODELAR"
+      ],
+      "score_base": 70,
+      "bonus_ncm_antigo_aceito": 20,
+      "justificativa": "Descricao indica macarrao/massa alimenticia."
+    },
+    {
+      "id": "biscoito_bolacha_wafer",
+      "categoria": "biscoito, bolacha ou wafer",
+      "prioridade": 660,
+      "cfop": "5102",
+      "ncm_preferencial": "19053100",
+      "ncm_aceitos": [
+        "19053100",
+        "19053200",
+        "19059020",
+        "19059090"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "BISCOITO",
+        "BISC",
+        "BOLACHA",
+        "WAFER",
+        "ROSQUINHA",
+        "ROSQ",
+        "COOKIE"
+      ],
+      "palavras_fortes": [
+        "RECHEADO",
+        "COCO",
+        "CHOCOLATE",
+        "MABEL",
+        "AMANDA"
+      ],
+      "palavras_proibidas": [],
+      "score_base": 72,
+      "bonus_ncm_antigo_aceito": 18,
+      "justificativa": "Descricao indica biscoito/bolacha/wafer."
+    },
+    {
+      "id": "chocolate_doces_balas",
+      "categoria": "chocolate, doce ou bala",
+      "prioridade": 650,
+      "cfop": "5102",
+      "ncm_preferencial": "17049020",
+      "ncm_aceitos": [
+        "17041000",
+        "17049020",
+        "17049090",
+        "18063110",
+        "18063210",
+        "18069000",
+        "20079990"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "CHOCOLATE",
+        "BOMBOM",
+        "BALA",
+        "BALAS",
+        "PIRULITO",
+        "DOCE",
+        "PACOCA",
+        "PAÇOCA",
+        "GOIABADA"
+      ],
+      "palavras_fortes": [
+        "FINI",
+        "TRIDENT",
+        "HALLS",
+        "FLOPITO",
+        "NUTELLA"
+      ],
+      "palavras_proibidas": [
+        "CACHAÇA",
+        "CACHACA",
+        "BEBIDA",
+        "SUCO"
+      ],
+      "score_base": 66,
+      "bonus_ncm_antigo_aceito": 20,
+      "justificativa": "Descricao indica doces/chocolates/balas. Bloqueia falso positivo de bebida por palavras internas."
+    },
+    {
+      "id": "laticinios",
+      "categoria": "laticinio",
+      "prioridade": 640,
+      "cfop": "5102",
+      "ncm_preferencial": "04032000",
+      "ncm_aceitos": [
+        "04011010",
+        "04012010",
+        "04014010",
+        "04015021",
+        "04022110",
+        "04022130",
+        "04029900",
+        "04032000",
+        "04039000",
+        "04051000",
+        "04061010",
+        "04061090"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "LEITE",
+        "IOGURTE",
+        "QUEIJO",
+        "REQUEIJAO",
+        "MANTEIGA",
+        "MARGARINA",
+        "CREME DE LEITE",
+        "LEITE CONDENSADO"
+      ],
+      "palavras_fortes": [
+        "PIRACANJUBA",
+        "ITALAC",
+        "LEITBOM",
+        "NESTLE",
+        "DANONE"
+      ],
+      "palavras_proibidas": [
+        "BEBIDA LACTEA",
+        "ACHOCOLATADO PRONTO",
+        "LEITE DE COCO",
+        "CREME DENTAL",
+        "CREME PARA PELE"
+      ],
+      "score_base": 62,
+      "bonus_ncm_antigo_aceito": 24,
+      "justificativa": "Descricao indica laticinio. Bebida lactea pronta possui regra propria."
+    },
+    {
+      "id": "limpeza",
+      "categoria": "limpeza domestica",
+      "prioridade": 630,
+      "cfop": "5102",
+      "ncm_preferencial": "34025000",
+      "ncm_aceitos": [
+        "34011900",
+        "34012010",
+        "34012090",
+        "34025000",
+        "34029019",
+        "34029039",
+        "34029090",
+        "38089419",
+        "38099190"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "DETERGENTE",
+        "SABAO",
+        "SABÃO",
+        "AMACIANTE",
+        "DESINFETANTE",
+        "AGUA SANITARIA",
+        "LAVA LOUCAS",
+        "LIMPADOR",
+        "MULTIUSO",
+        "ESPONJA",
+        "BOMBRIL"
+      ],
+      "palavras_fortes": [
+        "YPE",
+        "VEJA",
+        "UAU",
+        "MINUANO",
+        "ABSOLUTO"
+      ],
+      "palavras_proibidas": [
+        "VINAGRE",
+        "ALCOOL"
+      ],
+      "score_base": 66,
+      "bonus_ncm_antigo_aceito": 20,
+      "justificativa": "Descricao indica produto de limpeza."
+    },
+    {
+      "id": "higiene_pessoal",
+      "categoria": "higiene pessoal",
+      "prioridade": 620,
+      "cfop": "5102",
+      "ncm_preferencial": "34013000",
+      "ncm_aceitos": [
+        "33051000",
+        "33059000",
+        "33061000",
+        "33072010",
+        "33072090",
+        "34011190",
+        "34012010",
+        "34013000",
+        "48181000",
+        "96190000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "SABONETE",
+        "SHAMPOO",
+        "CONDICIONADOR",
+        "CREME DENTAL",
+        "ESCOVA DENTAL",
+        "PAPEL HIGIENICO",
+        "DESODORANTE",
+        "DESOD",
+        "ABSORVENTE"
+      ],
+      "palavras_fortes": [
+        "DOVE",
+        "PALMOLIVE",
+        "COLGATE",
+        "REXONA",
+        "SEDA",
+        "SYM"
+      ],
+      "palavras_proibidas": [],
+      "score_base": 66,
+      "bonus_ncm_antigo_aceito": 20,
+      "justificativa": "Descricao indica higiene pessoal."
+    },
+    {
+      "id": "utilidades_descartaveis",
+      "categoria": "utilidade domestica ou descartavel",
+      "prioridade": 610,
+      "cfop": "5102",
+      "ncm_preferencial": "39241000",
+      "ncm_aceitos": [
+        "39241000",
+        "39249000",
+        "39232910",
+        "39231090",
+        "70133700",
+        "76151000",
+        "34060000"
+      ],
+      "frases_obrigatorias_qualquer": [
+        "COPO",
+        "PRATO",
+        "GARFO",
+        "COLHER",
+        "SACO",
+        "SACOLA",
+        "PAPEL ALUMINIO",
+        "FILME PVC",
+        "BACIA",
+        "POTE",
+        "VELA"
+      ],
+      "palavras_fortes": [
+        "DESCARTAVEL",
+        "KEROCOPO",
+        "ECOCOPPO",
+        "FILTRO"
+      ],
+      "palavras_proibidas": [
+        "COPO DE CERVEJA",
+        "COPO TERMICO COM BEBIDA"
+      ],
+      "score_base": 62,
+      "bonus_ncm_antigo_aceito": 22,
+      "justificativa": "Descricao indica utilidade domestica ou descartavel."
+    }
+  ],
+  "fallback": {
+    "cfop": "5102",
+    "ncm": "usar_ncm_antigo_se_vigente",
+    "categoria": "nao classificado",
+    "confianca": "baixa",
+    "justificativa": "Nenhuma regra forte encontrada. Manter NCM antigo se estiver vigente; caso contrario marcar para revisao."
+  }
+}

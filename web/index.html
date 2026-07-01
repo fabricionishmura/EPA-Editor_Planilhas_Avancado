@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Analisador Fiscal de Produtos</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Tabela NCM</p>
+        <h1>Analisador fiscal de produtos</h1>
+      </div>
+      <div class="vigencia">
+        <span id="vigenciaStatus">Carregando vigencia...</span>
+        <strong id="atoStatus"></strong>
+      </div>
+    </header>
+
+    <main>
+      <section class="upload-panel">
+        <div>
+          <h2>Planilha para analise</h2>
+          <p>Selecione a planilha de produtos. A original nao sera alterada.</p>
+        </div>
+        <label class="file-picker">
+          <input id="fileInput" type="file" accept=".xlsx" />
+          <span id="fileName">Escolher arquivo .xlsx</span>
+        </label>
+        <button id="analyzeButton" disabled>Analisar tabela</button>
+      </section>
+
+      <section id="statusPanel" class="status-panel hidden">
+        <span class="loader"></span>
+        <span id="statusText">Analisando...</span>
+      </section>
+
+      <section id="summary" class="summary-grid hidden">
+        <div>
+          <span>Total lido</span>
+          <strong id="totalRows">0</strong>
+        </div>
+        <div>
+          <span>CFOP 5405</span>
+          <strong id="cfop5405">0</strong>
+        </div>
+        <div>
+          <span>Confianca alta</span>
+          <strong id="highConfidence">0</strong>
+        </div>
+        <div>
+          <span>Revisao humana</span>
+          <strong id="humanReview">0</strong>
+        </div>
+        <div>
+          <span>Marcadas falhas</span>
+          <strong id="failedCount">0</strong>
+        </div>
+      </section>
+
+      <section id="ollamaPanel" class="ollama-panel hidden">
+        <div>
+          <p class="eyebrow">IA local opcional</p>
+          <h2>Revisor Ollama</h2>
+          <p>Use um servidor Ollama local ou em outro PC da rede. Nada e enviado para nuvem.</p>
+        </div>
+        <div class="ollama-controls">
+          <label>
+            Servidor
+            <input id="ollamaUrl" type="text" value="http://127.0.0.1:11434" />
+          </label>
+          <label>
+            Modelo
+            <input id="ollamaModel" type="text" value="qwen3:8b" />
+          </label>
+          <label>
+            Lote
+            <input id="ollamaBatch" type="number" value="10" min="1" max="25" />
+          </label>
+          <button id="testOllamaButton" type="button">Testar</button>
+          <button id="reviewOllamaButton" type="button">Revisar lote</button>
+        </div>
+        <p id="ollamaStatus" class="ollama-status">Aguardando teste de conexao.</p>
+      </section>
+
+      <section id="tableSection" class="table-section hidden">
+        <div class="table-toolbar">
+          <div>
+            <h2 id="tableTitle">Resultado da analise</h2>
+            <p id="detectedColumns"></p>
+          </div>
+          <div class="toolbar-actions">
+            <input id="searchInput" type="search" placeholder="Filtrar descricao, NCM ou categoria" />
+            <select id="confidenceFilter">
+              <option value="">Todas as confiancas</option>
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baixa">Baixa</option>
+              <option value="sem_classificacao">Sem classificacao</option>
+            </select>
+            <label class="toggle">
+              <input id="failedOnly" type="checkbox" />
+              <span>Somente falhas</span>
+            </label>
+            <button id="exportButton" type="button">Exportar CSV</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Linha</th>
+                <th>Descricao lida</th>
+                <th>CFOP sugerido</th>
+                <th>NCM sugerido</th>
+                <th>Categoria</th>
+                <th>Confianca</th>
+                <th>NCM final</th>
+                <th>Revisor local</th>
+                <th>IA Ollama</th>
+                <th>Candidatos NCM</th>
+                <th>Justificativa</th>
+                <th>Falha?</th>
+              </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
