@@ -2,7 +2,7 @@
 
 Analisador fiscal inteligente de produtos para auditoria e sugestão de CFOP e NCM a partir de planilhas Excel.
 
-O EPA — Editor de Planilhas Avançado é uma aplicação local desenvolvida para auxiliar na análise e classificação fiscal de produtos a partir de arquivos .xlsx.
+O EPA: Editor de Planilhas Avançado é uma aplicação local desenvolvida para auxiliar na análise e classificação fiscal de produtos a partir de arquivos .xlsx.
 
 O projeto nasceu da necessidade de automatizar parte de um processo manual de conferência de produtos, mantendo as decisões **explicáveis e passíveis de revisão humana**.
 
